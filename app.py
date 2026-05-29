@@ -7,7 +7,7 @@ import generate_timetable
 
 # Page Configuration
 st.set_page_config(layout="wide", page_title="University Timetable Generator")
-st.title("🎓 University Timetable Generator")
+st.title("University Timetable Generator")
 st.markdown("Automated constraints-based timetable generation system.")
 
 # Capture stdout to show logs
