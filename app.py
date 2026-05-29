@@ -61,9 +61,9 @@ if timetable:
             df.rename(columns=time_mapping, inplace=True)
             
             # Insert structural break columns so it looks exactly like the CLI
-            df.insert(2, 'Morning Break', '☕ BREAK')
-            df.insert(5, 'Lunch', '🍔 LUNCH')
-            df.insert(8, 'Afternoon Break', '☕ BREAK')
+            df.insert(2, 'Morning Break', 'BREAK')
+            df.insert(5, 'Lunch', 'LUNCH')
+            df.insert(8, 'Afternoon Break', 'BREAK')
             
             # Helper function to style cells
             def color_free(val):
