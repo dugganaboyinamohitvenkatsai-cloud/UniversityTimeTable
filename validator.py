@@ -1,7 +1,5 @@
 """
-University Timetable Generator - Validation System
-This file acts as an independent testing suite for generated timetables.
-It ensures that all constraints are met and outputs clean reports for viva explainability.
+Timetable validation system.
 """
 
 import data
@@ -192,10 +190,7 @@ def validate_room_types(all_timetables):
     return is_valid
 
 def generate_daily_load_report(all_timetables):
-    """
-    Generates a visual report of the daily period load for each section.
-    Extremely useful for analyzing the success of timetable balancing heuristics.
-    """
+    """Generates a report of the daily period load for each section."""
     print("=" * 32)
     print("DAILY LOAD REPORT")
     print("=" * 17)
