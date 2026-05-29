@@ -1,14 +1,6 @@
 """
-University Timetable Generator - Scheduler Version 3 (Deterministic + Smart Pruning)
-This file implements a deterministic, priority-based CSP scheduler for ALL SECTIONS.
-Beginner-friendly, modular, and designed for clear viva explainability.
-
-Key improvements over V2:
-  - Fixed random seed (42) for reproducible output every run.
-  - Smart room-type pre-filtering: Practicals only see Labs, Lectures only see Theory rooms.
-  - Faculty & section availability pre-check before attempting room assignment.
-  - Compact [ASSIGNED] / [REJECT] logging with attempt counters.
-  - Schedule scoring to evaluate timetable quality.
+Timetable Scheduler Module
+Implements a constraint satisfaction scheduler for the university timetable.
 """
 
 import sys
@@ -16,15 +8,9 @@ import random
 import data
 from constraints import validate_assignment
 
-# ============================================================
-# Fixed seed for deterministic, reproducible scheduling.
-# Same input data will ALWAYS produce the same timetable.
-# ============================================================
+# Fixed seed for reproducibility
 random.seed(42)
 
-# ============================================================
-# COUNTERS — track attempts, successes, rejections globally
-# ============================================================
 _total_attempts = 0
 _total_assigned = 0
 _total_rejected = 0
@@ -38,9 +24,6 @@ def _reset_counters():
     _total_rejected = 0
 
 
-# ============================================================
-# HELPER: Day Load Balancing (unchanged from V2)
-# ============================================================
 def get_day_load(current_timetable, day, section_name):
     """
     Returns the number of periods already scheduled on a given day for a section.
@@ -92,9 +75,6 @@ def get_block_index(periods):
     return 99
 
 
-# ============================================================
-# HELPER: Gap Minimization Score (unchanged from V2)
-# ============================================================
 def calculate_gap_score(current_timetable, day, periods, section_name):
     """
     Prefers scheduling classes near already occupied blocks to avoid isolated empty gaps.
@@ -118,13 +98,6 @@ def calculate_gap_score(current_timetable, day, periods, section_name):
     return min_dist
 
 
-# ============================================================
-# NEW: Smart Room Pre-Filtering
-# Filters room pool by class type BEFORE the assignment loop.
-# Practicals (P) → Lab rooms only.
-# Lectures/Tutorials/Skills (L/T/S) → Theory rooms only.
-# This eliminates 100% of "invalid room type" rejection spam.
-# ============================================================
 def filter_rooms_by_class_type(class_type):
     """
     Returns only rooms that are valid for the given class type.
@@ -136,11 +109,6 @@ def filter_rooms_by_class_type(class_type):
         return [r for r in data.rooms if r.room_type == 'Theory']
 
 
-# ============================================================
-# NEW: Faculty Availability Pre-Check
-# Checks if faculty is free during the proposed periods BEFORE
-# iterating over rooms. Skips entire block if faculty is busy.
-# ============================================================
 def is_faculty_free(current_timetable, day, periods, faculty):
     """
     Returns True if the faculty has no classes during the proposed periods on the given day.
@@ -154,10 +122,6 @@ def is_faculty_free(current_timetable, day, periods, faculty):
     return True
 
 
-# ============================================================
-# NEW: Section Slot Availability Pre-Check
-# Checks if the section already has a class in the proposed periods.
-# ============================================================
 def is_section_free(current_timetable, day, periods, section_name):
     """
     Returns True if the section has no classes during the proposed periods on the given day.
@@ -169,10 +133,6 @@ def is_section_free(current_timetable, day, periods, section_name):
     return True
 
 
-# ============================================================
-# NEW: Room Availability Pre-Check
-# Checks if a specific room is free during the proposed periods.
-# ============================================================
 def is_room_free(current_timetable, day, periods, room_no):
     """
     Returns True if the room has no classes during the proposed periods on the given day.
@@ -184,11 +144,6 @@ def is_room_free(current_timetable, day, periods, room_no):
     return True
 
 
-# ============================================================
-# NEW: Course Priority Sorting
-# Hardest-to-schedule courses go first to reduce backtracking.
-# Priority: Practicals > most classes > paired periods needed.
-# ============================================================
 def get_course_scheduling_units(course):
     """
     Expands a course's LTPS structure into a sorted list of (class_type, count) units.
@@ -211,11 +166,6 @@ def get_course_scheduling_units(course):
     return units
 
 
-# ============================================================
-# NEW: Schedule Scoring Function
-# Evaluates a complete timetable for quality/balance.
-# Lower score = better timetable.
-# ============================================================
 def score_timetable(timetable_dict):
     """
     Scores a complete timetable. Lower is better.
@@ -262,9 +212,6 @@ def score_timetable(timetable_dict):
     return score
 
 
-# ============================================================
-# CORE: Single Scheduling Attempt (with smart pruning)
-# ============================================================
 def _generate_timetable_attempt():
     """
     Core scheduling logic for a single attempt.
@@ -425,9 +372,6 @@ def _generate_timetable_attempt():
     return timetable_dict
 
 
-# ============================================================
-# MAIN: Generate Timetable (with scoring for best result)
-# ============================================================
 def generate_timetable():
     """
     Generates a valid timetable for ALL SECTIONS.
