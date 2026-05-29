@@ -1,21 +1,14 @@
 """
-University Timetable Generator - Constraints Logic
-This file contains ONLY constraint-checking logic for the CSP (Constraint Satisfaction Problem).
-It checks whether a proposed timetable assignment is valid according to defined rules.
-
-Beginner-friendly structure designed for easy explanation in viva.
+Timetable constraint validation logic.
 """
 
 from data import consecutive_blocks
 
-# ==========================================
-# HARD CONSTRAINTS (Must Never Break)
-# ==========================================
+# Hard Constraints
 
 def check_room_clash(current_timetable, day, periods, room_no):
     """
-    Hard Constraint 1: No Room Clash
-    Same room cannot be assigned to two different classes at the same time.
+    Check if room is already occupied.
     """
     for entry in current_timetable:
         if entry["day"] == day and entry["room"] == room_no:
@@ -28,8 +21,7 @@ def check_room_clash(current_timetable, day, periods, room_no):
 
 def check_section_clash(current_timetable, day, periods, section_name):
     """
-    Hard Constraint 2: No Section Clash
-    Same section cannot have multiple classes simultaneously.
+    Check if section has an overlapping class.
     """
     for entry in current_timetable:
         if entry["day"] == day and entry["section"] == section_name:
@@ -42,8 +34,7 @@ def check_section_clash(current_timetable, day, periods, section_name):
 
 def check_faculty_clash(current_timetable, day, periods, faculty):
     """
-    Hard Constraint 6: Faculty Clash
-    Same faculty cannot teach two different sections at the same time.
+    Check if faculty has an overlapping class.
     """
     if not faculty:
         return True, ""
@@ -60,8 +51,7 @@ def check_faculty_clash(current_timetable, day, periods, faculty):
 
 def check_room_type(class_type, room_type):
     """
-    Hard Constraint 3: Room Type Validation
-    Practical (P) must use Lab room. Lecture/Tutorial/Skill (L/T/S) must use Theory room.
+    Check if room type matches the required class type.
     """
     if class_type == 'P':
         if room_type != 'Lab':
@@ -79,9 +69,7 @@ def check_room_type(class_type, room_type):
 
 def check_consecutive_rule(periods, remaining_classes):
     """
-    Hard Constraint 4: Consecutive Block Rule
-    Prefer valid consecutive blocks: (P1,P2), (P3,P4), (P5,P6), (P7,P8)
-    Only allow a single period if exactly one required period remains.
+    Check consecutive period constraints.
     """
     # 1. Handling blocks of 2 periods
     if len(periods) == 2:
@@ -108,22 +96,18 @@ def check_consecutive_rule(periods, remaining_classes):
 
 def check_ltps_completion(periods, remaining_classes):
     """
-    Hard Constraint 5: LTPS Completion Tracking
-    Ensures we do not schedule more periods than required for this specific class type (L/T/P/S).
+    Ensures scheduled periods do not exceed remaining required periods.
     """
     if len(periods) > remaining_classes:
         return False, f"Cannot schedule {len(periods)} periods. Only {remaining_classes} remaining for this type."
     return True, ""
 
 
-# ==========================================
-# SOFT CONSTRAINTS (Preferred Rules)
-# ==========================================
+# Soft Constraints
 
 def check_same_course_same_day(current_timetable, day, course_short_name, section_name):
     """
-    Soft Constraint 1: Avoid repeating the same course twice in one day.
-    Instead of failing, this returns a warning string if violated.
+    Avoid scheduling the same course twice in one day.
     """
     for entry in current_timetable:
         if entry["day"] == day and entry["section"] == section_name and entry["course"] == course_short_name:
@@ -133,8 +117,7 @@ def check_same_course_same_day(current_timetable, day, course_short_name, sectio
 
 def check_course_spread(current_timetable, day, periods, course_short_name, section_name):
     """
-    Soft Constraint 2: Spread course across the week.
-    Avoid scheduling too many periods of the same course on the same day.
+    Spread course across the week.
     """
     scheduled_periods = 0
     for entry in current_timetable:
@@ -152,27 +135,18 @@ def check_soft_constraints(current_timetable, day, periods, course_short_name, s
     """
     warnings = []
     
-    # 1. Check if course repeats on same day
     success, msg = check_same_course_same_day(current_timetable, day, course_short_name, section_name)
     if not success:
         warnings.append(msg)
         
-    # 2. Check if course is spread across the week
     success, msg = check_course_spread(current_timetable, day, periods, course_short_name, section_name)
     if not success:
         warnings.append(msg)
-        
-    # NOTE FOR VIVA: 
-    # Additional soft constraints can be implemented here, such as:
-    # 1. Avoid unnecessary timetable gaps (Too many free periods between classes).
-    # These would return preference scores or warnings instead of hard failures.
     
     return warnings
 
 
-# ==========================================
-# MAIN VALIDATION FUNCTION
-# ==========================================
+# Main Validation Function
 
 def validate_assignment(current_timetable, day, periods, room_obj, section_name, course_short_name, class_type, remaining_classes, faculty=""):
     """
