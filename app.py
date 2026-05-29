@@ -8,9 +8,9 @@ import generate_timetable
 # Page Configuration
 st.set_page_config(layout="wide", page_title="University Timetable Generator")
 st.title("🎓 University Timetable Generator")
-st.markdown("This timetable is automatically generated using our deterministic Constraint Satisfaction logic engine. It is balanced, clash-free, and respects all university requirements.")
+st.markdown("Automated constraints-based timetable generation system.")
 
-# We want to capture the terminal output from the scheduler for display
+# Capture stdout to show logs
 old_stdout = sys.stdout
 log_capture = io.StringIO()
 sys.stdout = log_capture
@@ -20,12 +20,11 @@ try:
     with st.spinner("Generating optimal schedule..."):
         timetable = scheduler.generate_timetable()
         if timetable:
-            # Validate silently to catch any structural errors
             generate_timetable.validate_before_print(timetable)
 except Exception as e:
     st.error(f"Error during generation: {e}")
 finally:
-    # Restore stdout no matter what happens
+    # Restore stdout
     sys.stdout = old_stdout
 
 logs = log_capture.getvalue()
@@ -33,7 +32,6 @@ logs = log_capture.getvalue()
 if timetable:
     st.success("✅ Timetable generated and validated successfully!")
     
-    # Create interactive tabs for each section
     tabs = st.tabs([f"Section {name}" for name in timetable.keys()])
     
     time_mapping = {
@@ -51,19 +49,13 @@ if timetable:
         with tabs[idx]:
             st.header(f"Section {section_name}")
             
-            # Reuse our existing table builder logic
             table, columns = generate_timetable.build_section_table(section_timetable)
-            
-            # Convert dictionary into a Pandas DataFrame
             df = pd.DataFrame.from_dict(table, orient='index')
             
-            # Rename columns to real timings
             df.rename(columns=time_mapping, inplace=True)
-            
-            # Insert structural break columns so it looks exactly like the CLI
-            df.insert(2, 'Morning Break', 'BREAK')
-            df.insert(5, 'Lunch', 'LUNCH')
-            df.insert(8, 'Afternoon Break', 'BREAK')
+            df.insert(2, 'Morning Break', '☕ BREAK')
+            df.insert(5, 'Lunch', '🍔 LUNCH')
+            df.insert(8, 'Afternoon Break', '☕ BREAK')
             
             # Helper function to style cells
             def color_free(val):
@@ -74,12 +66,10 @@ if timetable:
                 else:
                     return 'background-color: #e6f4ea; color: #1e8e3e; font-weight: bold'
             
-            # Apply styles and render the dataframe across full width
             styled_df = df.style.map(color_free) if hasattr(df.style, 'map') else df.style.applymap(color_free)
             st.dataframe(styled_df, use_container_width=True)
 
-    # Let the user view the raw scheduler logs in an expandable section
-    with st.expander("Show Detailed Scheduling Logs"):
+    with st.expander("Show Logs"):
         st.code(logs, language="text")
 
 else:
